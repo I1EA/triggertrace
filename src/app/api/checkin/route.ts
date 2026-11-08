@@ -14,7 +14,6 @@ export async function POST(req: Request) {
 
     const memo = JSON.stringify({ app: "triggertrace", ...body });
 
-    // Manually construct Memo Instruction to avoid v3 compatibility issues
     const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
     
     const ix = new TransactionInstruction({
