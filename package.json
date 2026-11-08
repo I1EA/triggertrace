@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@solana-program/memo": "^0.16.0",
+    "@solana/web3.js": "^1.99.0",
+    "dotenv": "^18.0.9",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0"
