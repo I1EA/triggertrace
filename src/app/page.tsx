@@ -1,22 +1,11 @@
 "use client";
-export const dynamic = "force-dynamic";
-"use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TAG_OPTIONS = ["High stress", "Poor sleep", "Skipped meals", "No outdoors", "Social contact"];
 const SYMPTOM_OPTIONS = ["IBS / Stomach pain", "Depression / Low energy", "Chronic stress", "Hair loss", "Custom..."];
 
-const getPastDays = () => {
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-  }
-  return days;
-};
-
 export default function Home() {
+  const [days, setDays] = useState<string[]>([]);
   const [tracking, setTracking] = useState(SYMPTOM_OPTIONS[0]);
   const [customTracking, setCustomTracking] = useState("");
   const [symptom, setSymptom] = useState(3);
@@ -25,17 +14,28 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const days = getPastDays();
-  const todayStr = days[days.length - 1];
+  // Generate days only on the client side to avoid Vercel build errors
+  useEffect(() => {
+    const d = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      d.push(date.toISOString().slice(0, 10));
+    }
+    setDays(d);
+  }, []);
 
-  const fakeHistory: Record<string, number> = {
+  const todayStr = days.length > 0 ? days[days.length - 1] : "";
+
+  const fakeHistory: Record<string, number> = days.length > 0 ? {
     [days[0]]: 2, [days[1]]: 4, [days[2]]: 1, [days[3]]: 5, [days[4]]: 3, [days[5]]: 4,
-  };
+  } : {};
 
   const toggleTag = (t: string) =>
     setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
 
   const submit = async () => {
+    if (!todayStr) return;
     setLoading(true); setError(null); setSignature(null);
     const finalTracking = tracking === "Custom..." ? customTracking : tracking;
     
@@ -93,7 +93,6 @@ export default function Home() {
 
       <section className="space-y-6 bg-gray-50 p-5 rounded-xl border border-gray-200">
         
-        {/* Symptom Selector */}
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-2">What are you tracking?</label>
           <select 
@@ -114,13 +113,11 @@ export default function Home() {
           )}
         </div>
 
-        {/* Severity Slider */}
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-2">Severity today (0–5): {symptom}</label>
           <input type="range" min={0} max={5} value={symptom} onChange={(e) => setSymptom(Number(e.target.value))} className="w-full accent-black" />
         </div>
 
-        {/* Behaviors */}
         <div>
           <p className="text-sm font-bold text-gray-800 mb-2">Behaviors today</p>
           <div className="flex flex-wrap gap-2">
@@ -140,7 +137,7 @@ export default function Home() {
 
         <button
           onClick={submit}
-          disabled={loading || !!signature || (tracking === "Custom..." && !customTracking)}
+          disabled={loading || !!signature || (tracking === "Custom..." && !customTracking) || !todayStr}
           className="w-full rounded-lg bg-black px-4 py-3 text-white font-bold disabled:opacity-50 hover:bg-gray-800 transition-colors"
         >
           {loading ? "Writing to Solana…" : signature ? "Logged successfully ✓" : "Log check-in"}
