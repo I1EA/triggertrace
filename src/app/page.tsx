@@ -1,4 +1,6 @@
 "use client";
+export const dynamic = "force-dynamic";
+"use client";
 import { useState } from "react";
 
 const TAG_OPTIONS = ["High stress", "Poor sleep", "Skipped meals", "No outdoors", "Social contact"];
